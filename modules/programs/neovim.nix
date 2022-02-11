@@ -342,10 +342,18 @@ in {
     in mapAttrs (name: vals: concatConfigs vals) grouped;
 
     home.packages = [ cfg.finalPackage ];
-
+    
     xdg.configFile."nvim/init.vim" = mkIf (neovimConfig.neovimRcContent != "") {
-      text = neovimConfig.neovimRcContent;
+      text = if config.programs.neovim.generatedConfigs.lua != "" then
+          neovimConfig.neovimRcContent + "\nlua require('config')"
+        else
+          neovimConfig.neovimRcContent;
     };
+    
+    xdg.configFile."nvim/lua/config.lua" = mkIf (config.programs.neovim.generatedConfigs.lua != "") {
+      text = config.programs.neovim.generatedConfigs.lua;
+    };
+
     xdg.configFile."nvim/coc-settings.json" = mkIf cfg.coc.enable {
       source = jsonFormat.generate "coc-settings.json" cfg.coc.settings;
     };
